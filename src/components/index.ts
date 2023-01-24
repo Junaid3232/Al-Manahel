@@ -12,3 +12,6 @@ export * from './Header';
 export * from './Dropdown';
 export * from './SupportText';
 export * from './HomeHeader';
+export * from './ErrorModal';
+export * from './LoadingModal';
+export * from './NoLicenseModal';

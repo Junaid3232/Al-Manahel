@@ -2,9 +2,16 @@ import {Spacing} from 'const';
 import {Fonts} from 'const/theme';
 import {_View, _Icon, _Text} from 'components';
 import React from 'react';
-import {StyleSheet, TextInput, TextInputProps, TextStyle} from 'react-native';
+import {
+  Platform,
+  StyleSheet,
+  TextInput,
+  TextInputProps,
+  TextStyle,
+} from 'react-native';
 import {Color} from 'const';
 import DeviceInfo from 'react-native-device-info';
+import {useTranslation} from 'react-i18next';
 const isTablet = DeviceInfo.isTablet();
 
 interface IconProps {
@@ -30,6 +37,8 @@ export const _Input = React.forwardRef<TextInput, Props>(function Input(
   },
   ref,
 ) {
+  const {i18n} = useTranslation();
+  const lang = i18n?.language;
   return (
     <_View>
       <_Text style={{position: 'absolute', fontSize: 16, marginLeft: 3}}>
@@ -38,7 +47,12 @@ export const _Input = React.forwardRef<TextInput, Props>(function Input(
       <_View>
         {iconName && (
           <_Icon
-            style={[iconStyle, styles.icon, {left: isTablet ? 60 : 40}]}
+            style={[
+              styles.icon,
+              lang == 'ar' && {right: 15},
+              lang == 'en' && {left: 15},
+              Platform.OS == 'android' && {left: 10},
+            ]}
             name={iconName}
             family={iconFamily}
             color={iconcolor}
@@ -52,7 +66,11 @@ export const _Input = React.forwardRef<TextInput, Props>(function Input(
           style={[
             rest.multiline ? styles.multiline : styles.standard,
             style,
-            {paddingLeft: iconName ? 50 : 20},
+            lang == 'ar' && {fontFamily: 'JF Flat Regular'},
+            lang == 'ar' && {textAlign: 'right'},
+            lang == 'en' && {paddingLeft: iconName ? 50 : 20},
+            lang == 'ar' && {paddingRight: iconName ? 60 : 20},
+            Platform.OS === 'android' && iconName && {paddingLeft: 60},
           ]}
         />
       </_View>
@@ -90,9 +108,12 @@ const styles = StyleSheet.create({
   },
   icon: {
     position: 'absolute',
-    marginLeft: -20,
     top: 43,
-    zIndex: 1,
+    alignSelf: 'flex-start',
+
+    // marginLeft: -20,
+    // top: 43,
+    // zIndex: 1,
     width: 40,
   },
   rightIcon: {

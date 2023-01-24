@@ -3,8 +3,16 @@ import {StyleSheet} from 'react-native';
 import {_Image, _Text, _Icon, _View} from 'components';
 import {Color} from 'const';
 import {Fonts} from 'const/theme';
+import {urlConstants} from 'utils';
+import {useSelector} from 'react-redux';
 
-export const CompanyCard: React.FC = () => {
+interface Props {
+  currentUser: [];
+}
+export const CompanyCard: React.FC<Props> = ({currentUser}) => {
+  const BASE_URL = useSelector(state => state.companyUrl.companyUrl);
+  const imageURL = `${BASE_URL}${urlConstants.GET_PHOTO}${currentUser?.user?.photoLogoFileId}`;
+
   return (
     <_View style={styles.headerContainer}>
       <_View style={styles.iconStyles}>
@@ -14,24 +22,28 @@ export const CompanyCard: React.FC = () => {
             width={'100%'}
             resizeMode="contain"
             style={{alignSelf: 'center'}}
-            source={require('assets/images/profile.jpeg')}
+            source={{uri: imageURL}}
           />
         </_View>
         <_View>
-          <_Text style={styles.userName}>A Comapny</_Text>
-          <_View flexDirection="row" margins={{marginLeft: 10}}>
-            <_Icon
-              family="Ionicons"
-              name="location-sharp"
-              color={Color.Gray}
-              size={13}
-              style={{marginTop: 3}}
-            />
-            <_Text
-              style={{fontSize: 12, color: Color.MediumLite, marginLeft: 4}}>
-              5721 Kennel Rd, Trenton, Ohio(OH), 45067
-            </_Text>
-          </_View>
+          <_Text style={styles.userName}>
+            {currentUser.user.institutionName}
+          </_Text>
+          {currentUser.user.institutionAddress && (
+            <_View flexDirection="row" margins={{marginLeft: 10}}>
+              <_Icon
+                family="Ionicons"
+                name="location-sharp"
+                color={Color.Gray}
+                size={13}
+                style={{marginTop: 3}}
+              />
+              <_Text
+                style={{fontSize: 12, color: Color.MediumLite, marginLeft: 4}}>
+                {currentUser.user.institutionAddress}
+              </_Text>
+            </_View>
+          )}
         </_View>
       </_View>
     </_View>
@@ -60,13 +72,13 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'red',
+
     marginLeft: 10,
     overflow: 'hidden',
   },
   userName: {
     marginLeft: 10,
     fontSize: 16,
-    fontWeight: Fonts.bold,
+    fontFamily: Fonts.bold,
   },
 });

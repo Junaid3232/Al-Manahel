@@ -1,4 +1,4 @@
-import React, {FC, useEffect} from 'react';
+import React, {FC, useEffect, useState} from 'react';
 
 import {
   _View,
@@ -10,15 +10,87 @@ import {
   _Icon,
   _Input,
   SupportText,
+  ErrorModal,
 } from 'components';
 import {Color} from 'const';
 import {useNavigation} from '@react-navigation/native';
 import {NavigationProps} from 'navigation';
 import {StyleSheet} from 'react-native';
-import OtpInputs from 'react-native-otp-inputs';
 
-export const CodeVerfiy: FC = () => {
+import {urlConstants} from 'utils';
+import {AxiosResponse} from 'axios';
+import {useApi} from 'hooks';
+import {useDispatch} from 'react-redux';
+import {setUser} from 'app-redux';
+import {t} from 'i18next';
+import {Fonts} from 'const/theme';
+import {
+  CodeField,
+  Cursor,
+  useBlurOnFulfill,
+  useClearByFocusCell,
+} from 'react-native-confirmation-code-field';
+
+export const CodeVerfiy: FC = ({route}) => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [showError, setShowError] = useState<boolean>(false);
+  const [smsCode, setSmsCode] = useState<number>();
   const navigation = useNavigation<NavigationProps>();
+  const [employeeCode, setEmployeeCode] = useState<number>();
+  const [buttonDisable, setButtonDisble] = useState<boolean>(true);
+  const [value, setValue] = useState();
+  const CELL_COUNT = 6;
+  const ref = useBlurOnFulfill({value, cellCount: CELL_COUNT});
+  const [props, getCellOnLayoutHandler] = useClearByFocusCell({
+    value,
+    setValue,
+  });
+  const employeeNo = route?.params?.employeeNo;
+  const phoneNo = route?.params?.phoneNo;
+  let phone = phoneNo.toString();
+  var lastFive = phone.substr(phone.length - 4);
+
+  const dispatch = useDispatch();
+  const api = useApi();
+  useEffect(() => {
+    setEmployeeCode(employeeNo);
+  }, []);
+
+  const onValidateSms = async () => {
+    const URL = `${urlConstants.SMS_CODE}?employeeCode=${
+      employeeCode || employeeNo
+    }&smsCode=${smsCode}`;
+    setIsLoading(true);
+    api.postResource(URL, {}).then((res: AxiosResponse | undefined) => {
+      if (res) {
+        getUser();
+      } else {
+        setShowError(true);
+        setIsLoading(false);
+      }
+    });
+  };
+  const getUser = async () => {
+    const URL = `${urlConstants.EMPLOYEE_DATA}?code=${employeeNo}`;
+    api.getResource(URL).then(res => {
+      if (res) {
+        setIsLoading(false);
+        dispatch(setUser(res?.data));
+        navigation.navigate('home-screen');
+      }
+    });
+  };
+  useEffect(() => {
+    checkNo();
+  }, [value]);
+  let checkNo = async code => {
+    if (value?.toString().length === 6) {
+      setButtonDisble(false);
+      setSmsCode(value);
+    } else {
+      setButtonDisble(true);
+    }
+  };
 
   return (
     <_Screen
@@ -34,41 +106,79 @@ export const CodeVerfiy: FC = () => {
       background={<Background color={Color.White} />}
       hideTopSafeArea>
       <_View paddings={{padding: 20}} flex={1} align="center">
-        <_Text style={{fontSize: 20, fontWeight: 'bold'}}>
-          Verify it's you
+        <_Text style={{fontSize: 20, fontWeight: Fonts.bold}}>
+          {t('common:verify')}
         </_Text>
         <_Text style={{color: Color.Gray, textAlign: 'center', marginTop: 10}}>
-          We’ve sent a six digit verification code to
+          {t('common:weHaveSend6digitCode')}
         </_Text>
-        <_Text style={styles.numberText}>+1******234</_Text>
+        <_Text style={styles.numberText}>{`+1******${lastFive}`}</_Text>
         <_Text style={styles.timeText}>1:59</_Text>
-        <_View width={'100%'} style={{marginTop: 20}}>
-          <OtpInputs
-            handleChange={code => console.log(code)}
+        <_View
+          width={'100%'}
+          style={{
+            marginTop: 20,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+          <CodeField
+            ref={ref}
+            {...props}
+            value={value}
+            onChangeText={setValue}
+            cellCount={CELL_COUNT}
+            rootStyle={styles.codeFieldRoot}
+            keyboardType="number-pad"
+            textContentType="oneTimeCode"
+            renderCell={({index, symbol, isFocused}) => (
+              <_View
+                // Make sure that you pass onLayout={getCellOnLayoutHandler(index)} prop to root component of "Cell"
+                onLayout={getCellOnLayoutHandler(index)}
+                key={index}
+                style={[styles.cellRoot, isFocused && styles.focusCell]}>
+                <_Text style={styles.cellText}>
+                  {symbol || (isFocused ? <Cursor /> : null)}
+                </_Text>
+              </_View>
+            )}
+          />
+          {/* <OtpInputs
+            handleChange={checkNo}
+            // autoFocus={true}
+            autoFocusOnLoad={true}
             numberOfInputs={6}
-            keyboardType={'numbers-and-punctuation'}
+            keyboardType={'phone-pad'}
             style={styles.container}
             inputContainerStyles={styles.inputContainer}
             inputStyles={styles.inputStyles}
             focusStyles={styles.focusStyle}
-          />
+          /> */}
         </_View>
         <_View width={'100%'} style={{marginTop: 30, paddingBottom: 10}}>
           <_Button
-            title="Sign in"
-            onPress={() => navigation.navigate('home-screen')}
+            title={t('common:signIn')}
+            disabled={buttonDisable}
+            loading={isLoading}
+            onPress={onValidateSms}
           />
         </_View>
         <_Text>
-          Didn’t a recieve code?
-          <_Text style={{color: '#0D6EFD', textDecorationLine: 'underline'}}>
-            {` Send again`}
+          {t('common:didnotrecevetheCode')}
+          <_Text
+            onPress={onValidateSms}
+            style={{color: '#0D6EFD', textDecorationLine: 'underline'}}>
+            {t('common:sendAgain')}
           </_Text>
         </_Text>
         <_View style={{position: 'absolute', bottom: 30}}>
           <SupportText />
         </_View>
       </_View>
+      <ErrorModal
+        setVisible={setShowError}
+        isVisible={showError}
+        description={t('common:invalidVerificationCode')}
+      />
     </_Screen>
   );
 };
@@ -114,4 +224,31 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   numberText: {color: Color.black, textAlign: 'center', marginTop: 10},
+  root: {padding: 20, minHeight: 300},
+  title: {textAlign: 'center', fontSize: 30},
+  codeFieldRoot: {
+    width: '100%',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginHorizontal: 20,
+  },
+  cellRoot: {
+    width: 50,
+    height: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderBottomColor: '#ccc',
+    borderBottomWidth: 2,
+    // marginLeft: 10,
+  },
+  cellText: {
+    color: '#000',
+    fontSize: 28,
+    textAlign: 'center',
+    lineHeight: 40,
+  },
+  focusCell: {
+    borderBottomColor: '#007AFF',
+    borderBottomWidth: 2,
+  },
 });

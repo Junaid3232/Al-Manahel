@@ -1,7 +1,4 @@
 export const enumConstants = {
-  UserRole: {
-    Owner: 1,
-    Manager: 2,
-    SalesMan: 3,
-  },
+  checkIn: 0,
+  checkOut: 1,
 };

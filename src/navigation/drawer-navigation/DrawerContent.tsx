@@ -1,36 +1,40 @@
 import {DrawerContentScrollView, DrawerItem} from '@react-navigation/drawer';
 import {useNavigation} from '@react-navigation/native';
 import {NavigationProps} from 'navigation/models';
-import {getUniqueId} from 'react-native-device-info';
-
-import {
-  StyleSheet,
-  Platform,
-  Dimensions,
-  Image,
-  TouchableOpacity,
-} from 'react-native';
+import {StyleSheet, Platform, Dimensions, TouchableOpacity} from 'react-native';
 import {_Text, _View, _Image, _Icon} from 'components';
-import React, {FC, useState} from 'react';
+import React, {FC} from 'react';
 import {CommonActions} from '@react-navigation/native';
-
 import {Color} from 'const';
-
-import {useApi} from 'hooks';
-
 import {useTranslation} from 'react-i18next';
 import {Fonts} from 'const/theme';
-import {CompanyCard} from 'modules';
 import {shadow} from 'global-styles';
+import {useDispatch, useSelector} from 'react-redux';
+import {urlConstants} from 'utils';
+import {logOut} from 'app-redux';
 
 export const DrawerContent: FC = () => {
   const navigation = useNavigation<NavigationProps>();
   const height = Dimensions.get('screen').height;
 
   const {t, i18n} = useTranslation();
-  const api = useApi();
+  const lang = i18n.language;
+  const dispatch = useDispatch();
+  const BASE_URL = useSelector(state => state.companyUrl.companyUrl);
+  const currentUser = useSelector(state => state.currentUser);
+  const imageURL = `${BASE_URL}${urlConstants.GET_PHOTO}${currentUser?.user?.photoLogoFileId}`;
+  const profileImage = `${BASE_URL}${urlConstants.GET_PHOTO}${currentUser?.user?.photoFileId}`;
 
-  const language = i18n.language;
+  const onLogout = async () => {
+    dispatch(logOut());
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{name: 'auth'}],
+      }),
+    );
+    return;
+  };
 
   return (
     <DrawerContentScrollView contentContainerStyle={styles.container}>
@@ -44,12 +48,12 @@ export const DrawerContent: FC = () => {
                 width={40}
                 height={40}
                 radius={20}
-                source={require('assets/images/profile.jpeg')}
+                source={{uri: profileImage}}
               />
             </_View>
           </_View>
           <_View>
-            <_Text style={styles.nameText}>{`Jessica Miller`}</_Text>
+            <_Text style={styles.nameText}>{currentUser?.user?.name}</_Text>
             <_Text
               color={Color.White}
               margins={{marginLeft: 15}}
@@ -66,12 +70,12 @@ export const DrawerContent: FC = () => {
                 width={'100%'}
                 resizeMode="contain"
                 style={{alignSelf: 'center'}}
-                source={require('assets/images/profile.jpeg')}
+                source={{uri: imageURL}}
               />
             </_View>
             <_View>
               <_Text style={[styles.itemText, {marginLeft: 10}]}>
-                A Comapny
+                {currentUser.user?.institutionName}
               </_Text>
             </_View>
           </_View>
@@ -82,7 +86,7 @@ export const DrawerContent: FC = () => {
             labelStyle={[
               styles.itemText,
               {
-                fontFamily: Fonts.medium,
+                fontFamily: lang == 'ar' ? 'JF Flat Regular' : Fonts.medium,
               },
             ]}
             onPress={() => navigation.navigate('setting')}
@@ -94,12 +98,10 @@ export const DrawerContent: FC = () => {
             labelStyle={[
               styles.itemText,
               {
-                fontFamily: language == 'ur' ? FontsUrdu.regular : Fonts.medium,
+                fontFamily: lang == 'ar' ? 'JF Flat Regular' : Fonts.medium,
               },
             ]}
-            onPress={() =>
-              navigation.navigate('inventory-screen', {isFromDrawer: true})
-            }
+            onPress={() => console.log('OnPress')}
           />
           <DrawerItem
             pressColor={Color.Secondary}
@@ -108,22 +110,20 @@ export const DrawerContent: FC = () => {
             labelStyle={[
               styles.itemText,
               {
-                fontFamily: language == 'ur' ? FontsUrdu.regular : Fonts.medium,
+                fontFamily: lang == 'ar' ? 'JF Flat Regular' : Fonts.medium,
               },
             ]}
-            onPress={() =>
-              navigation.navigate('inventory-screen', {isFromDrawer: true})
-            }
+            onPress={() => console.log('OnPress')}
           />
         </_View>
       </_View>
       <TouchableOpacity
-        // onPress={onLogout}
+        onPress={onLogout}
         style={[
           styles.logoutContainer,
           Platform.OS === 'ios' ? {top: height - 80} : {bottom: 10},
         ]}>
-        <_Text style={styles.itemText}>Logout</_Text>
+        <_Text style={styles.itemText}>{t('common:logout')}</_Text>
         <_View style={styles.icon}>
           <_Icon
             family="MaterialIcons"
@@ -252,7 +252,6 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 20,
-    backgroundColor: 'red',
 
     ...shadow,
     overflow: 'hidden',

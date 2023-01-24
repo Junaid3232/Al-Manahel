@@ -1,4 +1,4 @@
-import React, {FC, useState} from 'react';
+import React, {FC, useEffect, useState} from 'react';
 import {_View, _Text, _Input, _Icon} from 'components';
 import {ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
 import {Color} from 'const';
@@ -10,17 +10,25 @@ interface EnumItem {
 interface Props extends Array<EnumItem> {
   storeData: any;
   title: string;
+  setSelectedItem: any;
+  selectedItem: any;
 }
-export const _Dropdown: FC<Props> = ({storeData, title}) => {
+export const _Dropdown: FC<Props> = ({
+  storeData,
+  title,
+  setSelectedItem,
+  selectedItem,
+}) => {
   const [showDropdown, setShowdropdown] = useState<boolean>(false);
   const [stores, setStores] = useState<Array<EnumItem>>(storeData);
+  console.log('storeData----', storeData);
+  useEffect(() => {
+    setStores(storeData);
+  }, [storeData]);
 
-  const onSearch = (text: string) => {
-    text.length > 0 ? setShowdropdown(true) : setShowdropdown(false);
-    let results: Array<EnumItem> = storeData.filter(
-      (item: any) => item.name.toLowerCase().indexOf(text.toLowerCase()) > -1,
-    );
-    setStores(results);
+  const onSelect = async (item: {}) => {
+    setSelectedItem(item);
+    setShowdropdown(false);
   };
 
   return (
@@ -29,7 +37,7 @@ export const _Dropdown: FC<Props> = ({storeData, title}) => {
         <TouchableOpacity
           style={styles.mainContainer}
           onPress={() => setShowdropdown(!showDropdown)}>
-          <_Text>{title}</_Text>
+          <_Text>{selectedItem?.name ? selectedItem.name : title}</_Text>
           <_View style={styles.downIcon}>
             <_Icon
               name={showDropdown ? 'up' : 'down'}
@@ -43,11 +51,16 @@ export const _Dropdown: FC<Props> = ({storeData, title}) => {
         <ScrollView style={styles.dropContainer}>
           <_View style={{marginBottom: 20, ...shadow, zIndex: 3}}>
             {stores?.map((item, index) => (
-              <TouchableOpacity key={index} style={styles.dropItem}>
+              <TouchableOpacity
+                key={index}
+                style={styles.dropItem}
+                onPress={() => {
+                  onSelect(item);
+                }}>
                 <_Text>{item.name}</_Text>
               </TouchableOpacity>
             ))}
-            {Boolean(stores.length <= 0) && (
+            {Boolean(stores?.length <= 0) && (
               <_Text style={{marginTop: 10}}>{'No Results Found'}</_Text>
             )}
           </_View>

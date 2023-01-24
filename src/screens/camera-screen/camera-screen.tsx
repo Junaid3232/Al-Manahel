@@ -15,58 +15,31 @@ import {
 import {Color} from 'const';
 import {useNavigation} from '@react-navigation/native';
 import {NavigationProps} from 'navigation';
-import {
-  StyleSheet,
-  Platform,
-  ActivityIndicator,
-  TouchableOpacity,
-} from 'react-native';
+import {StyleSheet, Platform, TouchableOpacity} from 'react-native';
 import {RNCamera} from 'react-native-camera';
+import {t} from 'i18next';
 
-import {useApi} from 'hooks';
-import MapView from 'react-native-maps';
-import {Alert} from 'react-native';
-
-export const CameraScreen: FC = () => {
+export const CameraScreen: FC = ({route}) => {
   const navigation = useNavigation<NavigationProps>();
-  const [imageRatio, setImageRatio] = useState<any>();
-
   let cameraRef = useRef();
   const DESIRED_RATIO = '16:9';
+  const {type, locationId} = route?.params;
+
   const takePicture = async () => {
     const options = {quality: 0.5, base64: true};
     const data = await cameraRef.takePictureAsync(options);
-    navigation.navigate('send-checkin-screen', {image: data});
+    navigation.navigate('send-checkin-screen', {
+      image: data,
+      type: type,
+      locationId: locationId,
+    });
   };
-
-  // const prepareRatio = async () => {
-  //   if (Platform.OS === 'android' && cameraRef) {
-  //     const ratios = await cameraRef.getSupportedRatiosAsync();
-
-  //     // See if the current device has your desired ratio, otherwise get the maximum supported one
-  //     // Usually the last element of "ratios" is the maximum supported ratio
-  //     const ratio =
-  //       ratios.find((ratio: any) => ratio === DESIRED_RATIO) ||
-  //       ratios[ratios.length - 1];
-  //     console.log('-----ration', ratio);
-  //     setImageRatio(ratio);
-  //   }
-  // };
 
   return (
     <_Screen
       statusBarColor={Color.black}
       header={
-        <_View
-          style={{
-            width: '100%',
-            height: 70,
-            backgroundColor: Color.black,
-            alignItems: 'center',
-            padding: 10,
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-          }}>
+        <_View style={styles.mainView}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <_Icon
               family="AntDesign"
@@ -75,8 +48,9 @@ export const CameraScreen: FC = () => {
               size={20}
             />
           </TouchableOpacity>
-
-          <_Text style={{color: Color.White, fontSize: 20}}>Take Picture</_Text>
+          <_Text style={{color: Color.White, fontSize: 20}}>
+            {t('common:takePicture')}
+          </_Text>
           <_View></_View>
         </_View>
       }
@@ -84,7 +58,7 @@ export const CameraScreen: FC = () => {
       <_View flex={1} style={{backgroundColor: Color.White}}>
         <RNCamera
           style={{flex: 1, alignItems: 'center', backgroundColor: 'red'}}
-          type={RNCamera.Constants.Type.back}
+          type={RNCamera?.Constants?.Type?.back}
           ref={ref => {
             cameraRef = ref;
           }}
@@ -99,32 +73,41 @@ export const CameraScreen: FC = () => {
           }}
         />
       </_View>
-      <TouchableOpacity
-        onPress={takePicture}
-        style={{
-          width: 75,
-          height: 75,
-          // backgroundColor: Color.White,
-          borderColor: Color.White,
-          borderWidth: 2,
-          position: 'absolute',
-          bottom: 30,
-          alignSelf: 'center',
-          borderRadius: 38,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-        <_View
-          style={{
-            width: 60,
-            height: 60,
-            backgroundColor: Color.White,
-
-            borderRadius: 30,
-          }}></_View>
+      <TouchableOpacity onPress={takePicture} style={styles.captureButton}>
+        <_View style={styles.innerView}></_View>
       </TouchableOpacity>
     </_Screen>
   );
 };
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  captureButton: {
+    width: 75,
+    height: 75,
+    // backgroundColor: Color.White,
+    borderColor: Color.White,
+    borderWidth: 2,
+    position: 'absolute',
+    bottom: 30,
+    alignSelf: 'center',
+    borderRadius: 38,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  innerView: {
+    width: 60,
+    height: 60,
+    backgroundColor: Color.White,
+    borderRadius: 30,
+  },
+  mainView: {
+    width: '100%',
+    height: Platform.OS == 'android' ? 70 : 90,
+    backgroundColor: Color.black,
+    alignItems: Platform.OS == 'android' ? 'center' : 'flex-end',
+    padding: 10,
+    paddingBottom: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+});

@@ -12,56 +12,51 @@ import {
   HomeHeader,
 } from 'components';
 import {Color} from 'const';
-import {useNavigation} from '@react-navigation/native';
-import {NavigationProps} from 'navigation';
 import {FlatList, StyleSheet} from 'react-native';
 import {CompanyCard, HomeCard} from 'modules';
-import {useApi} from 'hooks';
+import {useSelector} from 'react-redux';
+import {t} from 'i18next';
 
 export const Home: FC = () => {
-  const api = useApi();
-  const navigation = useNavigation<NavigationProps>();
+  const currentUser = useSelector(state => state.currentUser);
+
   const cardsData = [
     {
-      name: 'Reports',
-      description:
-        'Browse reports, shifts, summary,fingerprints in specific time period. Download & share.',
+      name: t('common:reports'),
+      description: t('common:firstCard'),
+      icon: require('../../assets/icons/sheet.png'),
     },
     {
-      name: 'Questionings',
-      description:
-        'View new & old questionings, send & view anserwers.Also see manager’s decision.',
+      name: t('common:questionings'),
+      description: t('common:secondCard'),
+      icon: require('../../assets/icons/question.png'),
     },
     {
-      name: 'Furloughs Requests',
-      description: `Send and view pending fulough requests. Also see manager’s decision.`,
+      name: t('common:furloughs'),
+      description: t('common:thirdCard'),
+      icon: require('../../assets/icons/employee.png'),
     },
     {
-      name: 'Vacations Requests',
-      description: `Send and view pending vacation requests. Also see manager’s decision.`,
+      name: t('common:vacationRequests'),
+      description: t('common:fourthCard'),
+      icon: require('../../assets/icons/holiday.png'),
     },
     {
-      name: 'Checkin & Checkout',
-      description: `Employee can send checkin and checkout in spesific locations.`,
+      name: t('common:CheckinCheckout'),
+      description: t('common:fifthCard'),
       navigateTo: 'check-in-out-screen',
+      icon: require('../../assets/icons/time.png'),
     },
   ];
-  const getUrl = async () => {
-    api
-      .getResource('http://113.30.151.6:100/clients/get-api-url?code=0001')
-      .then(res => console.log('----response', res.data));
-  };
-  useEffect(() => {
-    getUrl();
-  }, []);
+
   return (
     <_Screen
       statusBarColor={Color.Primary}
-      header={<HomeHeader />}
+      header={<HomeHeader currentUser={currentUser} />}
       background={<Background color={Color.White} />}>
       <_View paddings={{paddingHorizontal: 20}} flex={1}>
         <_View>
-          <CompanyCard />
+          <CompanyCard currentUser={currentUser} />
         </_View>
         <_View flex={1}>
           <FlatList

@@ -5,22 +5,34 @@ import {Color} from 'const';
 import {NavigationProps} from 'navigation';
 import {useNavigation} from '@react-navigation/native';
 import {Fonts} from 'const/theme';
+import {useTranslation} from 'react-i18next';
 
 interface Props {
   item: {
     description: string;
     name: string;
     onPress: any;
+    icon: any;
   };
 }
 export const HomeCard: React.FC<Props> = ({item}) => {
   const navigation = useNavigation<NavigationProps>();
+  const {i18n} = useTranslation();
+  const lang = i18n.language;
   return (
     <TouchableOpacity
       onPress={() => navigation.navigate(item?.navigateTo)}
       style={styles.container}>
       <_View style={styles.iconStyles}>
-        <_View style={styles.userImage}></_View>
+        <_View style={styles.userImage}>
+          <_Image
+            height={'80%'}
+            width={'80%'}
+            resizeMode="contain"
+            style={{alignSelf: 'center'}}
+            source={item?.icon}
+          />
+        </_View>
         <_View flexDirection="row" width={'100%'}>
           <_View margins={{marginLeft: 10}}>
             <_Text style={styles.userName}>{item.name}</_Text>
@@ -32,7 +44,7 @@ export const HomeCard: React.FC<Props> = ({item}) => {
           <_View style={styles.iconCont}>
             <_Icon
               family="Feather"
-              name="chevron-right"
+              name={lang == 'en' ? 'chevron-right' : 'chevron-left'}
               color={Color.Gray}
               size={18}
             />
@@ -74,11 +86,12 @@ const styles = StyleSheet.create({
   userImage: {
     width: 30,
     height: 30,
-    borderRadius: 20,
-    backgroundColor: Color.Primary + 20,
-    alignSelf: 'center',
-
+    borderRadius: 15,
+    backgroundColor: Color.Primary + 30,
+    marginLeft: 10,
     overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   userName: {
     fontSize: 16,

@@ -1,4 +1,4 @@
-import React, {FC, useEffect} from 'react';
+import React, {FC, useEffect, useState} from 'react';
 
 import {
   _View,
@@ -10,14 +10,54 @@ import {
   _Icon,
   _Input,
   SupportText,
+  ErrorModal,
 } from 'components';
 import {Color} from 'const';
 import {useNavigation} from '@react-navigation/native';
 import {NavigationProps} from 'navigation';
 import {StyleSheet} from 'react-native';
+import {useApi} from 'hooks';
+import {urlConstants} from 'utils';
+import {useDispatch} from 'react-redux';
+import {companyUrl} from 'app-redux';
+import axios, {AxiosResponse} from 'axios';
+import {t} from 'i18next';
 
 export const CompanyCode: FC = () => {
   const navigation = useNavigation<NavigationProps>();
+  const [companyCode, setCompanyCode] = useState<number>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [showError, setShowError] = useState<boolean>(false);
+  let dispatch = useDispatch();
+  const api = useApi();
+  const getCompanyUrl = async () => {
+    let URL = `${urlConstants.GET_COMAPNY_URL}?code=${companyCode}`;
+    setIsLoading(true);
+
+    axios
+      .get(URL)
+      .then((response: AxiosResponse | undefined) => {
+        if (response) {
+          setIsLoading(false);
+          dispatch(companyUrl(response?.data));
+          navigation.navigate('login-screen');
+        }
+      })
+      .catch(e => {
+        setShowError(true);
+        setIsLoading(false);
+      });
+
+    // api.getResource(URL).then((res: AxiosResponse | undefined) => {
+    //   if (res) {
+    //     dispatch(companyUrl(res?.data));
+    //     navigation.navigate('login-screen');
+    //   } else {
+    //     setShowError(true);
+    //     setIsLoading(false);
+    //   }
+    // });
+  };
 
   return (
     <_Screen
@@ -33,32 +73,42 @@ export const CompanyCode: FC = () => {
       background={<Background color={Color.White} />}
       hideTopSafeArea>
       <_View paddings={{padding: 20}} flex={1} align="center">
-        <_Text style={{fontSize: 20, fontWeight: 'bold'}}>Company Code</_Text>
+        <_Text style={{fontSize: 20, lineHeight: 25}}>
+          {t('common:companyCode')}
+        </_Text>
         <_Text style={{color: Color.Gray, textAlign: 'center', marginTop: 10}}>
-          Lorem ipsum dolor sit amet, etiam eu turpis est a, mattis tellus sed
-          dignissim, metus nec fringilla accumsan.
+          {t('common:loremPisum')}
         </_Text>
         <_View width={'100%'} style={{marginTop: 20}}>
           <_Input
-            text={'Company Code'}
+            text={t('common:companyCode').toString()}
+            keyboardType={'number-pad'}
             style={{height: 40, width: '100%'}}
-            placeholder="Enter Company Code "
+            placeholder={t('common:enterCompanyCode').toString()}
             iconFamily="MaterialCommunityIcons"
             iconName="link-lock"
             iconcolor={Color.Gray}
             iconSize={18}
+            onChangeText={text => setCompanyCode(text)}
           />
         </_View>
         <_View width={'100%'} style={{marginTop: 30}}>
           <_Button
-            title="Continue"
-            onPress={() => navigation.navigate('login-screen')}
+            title={t('common:continue')}
+            loading={isLoading}
+            onPress={getCompanyUrl}
+            // onPress={() => navigation.navigate('login-screen')}
           />
         </_View>
         <_View style={{position: 'absolute', bottom: 30}}>
           <SupportText />
         </_View>
       </_View>
+      <ErrorModal
+        setVisible={setShowError}
+        isVisible={showError}
+        description={t('common:invalidCompanyCode')}
+      />
     </_Screen>
   );
 };

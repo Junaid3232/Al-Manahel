@@ -1,10 +1,17 @@
 import React, {FC} from 'react';
 import {_View, _Text, _Icon, _Image, _Screen} from 'components';
-import {Image, TouchableOpacity, StatusBar} from 'react-native';
+import {
+  Image,
+  TouchableOpacity,
+  StatusBar,
+  Platform,
+  SafeAreaView,
+} from 'react-native';
 import {Color} from 'const';
 import {Fonts} from 'const/theme';
 import {useNavigation} from '@react-navigation/native';
 import {NavigationProps} from 'navigation';
+import {useTranslation} from 'react-i18next';
 
 interface Props {
   name: string;
@@ -13,8 +20,10 @@ interface Props {
 }
 export const _Header: FC<Props> = ({name, goBack, iconRight}) => {
   const navigation = useNavigation<NavigationProps>();
+  const {i18n} = useTranslation();
+  const lang = i18n.language;
   return (
-    <_View
+    <SafeAreaView
       style={{
         backgroundColor: Color.Primary,
         justifyContent: 'space-between',
@@ -26,7 +35,7 @@ export const _Header: FC<Props> = ({name, goBack, iconRight}) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <_Icon
             family="Feather"
-            name="chevron-left"
+            name={lang == 'ar' ? 'chevron-right' : 'chevron-left'}
             color={Color.White}
             size={30}
           />
@@ -54,6 +63,6 @@ export const _Header: FC<Props> = ({name, goBack, iconRight}) => {
           <_Icon name="timer-outline" family="Ionicons" size={25} />
         ) : null}
       </TouchableOpacity>
-    </_View>
+    </SafeAreaView>
   );
 };

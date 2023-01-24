@@ -2,15 +2,19 @@ type ScreensWithoutParams =
   | 'auth'
   | 'company-code'
   | 'login-screen'
-  | 'code-verify-screen'
   | 'home-screen'
-  |'check-in-out-screen'
-  |'home'
-  | 'camera-screen'
+  | 'check-in-out-screen'
+  | 'home'
+  | 'terms-screen'
   | 'setting';
 
 interface ScreensWithParams {
-  'send-checkin-screen':{image:any}
+  'send-checkin-screen': {image: any; type: number; locationId: number};
+  'code-verify-screen': {
+    employeeNo: number | undefined;
+    phoneNo: number | undefined;
+  };
+  'camera-screen': {type: number; locationId: number};
   //   'home-screen': { id: string; alt: boolean };
 }
 

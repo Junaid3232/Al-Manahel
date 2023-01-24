@@ -1,14 +1,23 @@
 import {AxiosResponse} from 'axios';
 import axios from 'axios';
-import {AuthToken, Instance} from 'services';
+import {Instance} from 'services';
+import {useSelector} from 'react-redux';
 
 export const useApi = () => {
-  const AxiosInstance = Instance();
+  const BASE_URL = useSelector(state => state.companyUrl.companyUrl);
+
+  const AxiosInstance = axios.create({
+    baseURL: BASE_URL,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 
   //Axios Interceptor
 
-  const processFailedRequest = (status: number) => {
-    if (status === 400 || status === 403) {
+  const processFailedRequest = (response: AxiosResponse) => {
+    console.log('response---', response);
+    if (response.status === 400 || response.status === 403) {
       throw new Error(
         'We are not able to find your details. Please contact our support team.',
       );
@@ -19,14 +28,15 @@ export const useApi = () => {
   const getResource = async <S extends T | undefined>(
     endpoint: string,
   ): Promise<AxiosResponse<S> | undefined> => {
+    console.log('----URL----', endpoint);
     try {
       const response = await AxiosInstance.get<S>(endpoint);
-      if (response.status === 200) {
+      if (response?.status === 200) {
         return response;
       }
-      return processFailedRequest(response.status);
+      return response;
     } catch (e: any) {
-      processFailedRequest(e.message);
+      console.log('e', e);
       return;
     }
   };
@@ -35,17 +45,18 @@ export const useApi = () => {
     endpoint: string,
     body: S,
   ): Promise<AxiosResponse<Result> | undefined> => {
+    console.log('----end point', endpoint);
     try {
       const response = await AxiosInstance.post<S, AxiosResponse<Result>>(
         endpoint,
         body,
       );
-      if (response.status === 200) {
+      if (response?.status === 200) {
         return response;
       }
-      return processFailedRequest(response.status);
+      return response;
     } catch (e: any) {
-      processFailedRequest(e.status);
+      console.log('e', e);
       return;
     }
   };

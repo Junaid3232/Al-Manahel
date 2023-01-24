@@ -1,8 +1,13 @@
 import React, {FC, useState} from 'react';
 import {_Checkbox, _Icon, _Image, _Text, _View} from 'components';
-import {Modal,TouchableOpacity} from 'react-native';
+import {Modal, TouchableOpacity, Text} from 'react-native';
 import {Color} from 'const';
-import { styles } from './style';
+import {styles} from './style';
+import {useTranslation} from 'react-i18next';
+import {I18nManager} from 'react-native';
+import RNRestart from 'react-native-restart';
+import {t} from 'i18next';
+
 interface selectLanguageModalProps {
   isVisible?: boolean;
   setIsVisible?: (x: boolean) => void;
@@ -13,39 +18,43 @@ export const SelectLanguageModal: FC<selectLanguageModalProps> = ({
   setIsVisible,
   selectedLanguage,
 }) => {
-  const [ArabicChecked, setArabicChecked] = useState<boolean>(false);
-  const [englishChecked, setEnglishChecked] = useState<boolean>(true);
+  const {i18n} = useTranslation();
+  const lang = i18n?.language;
 
-  const toggleArabicCheck = () => {
-    setEnglishChecked(false)
-    setArabicChecked(true);
-    selectedLanguage?.('اللغة العربية')
-    setIsVisible?.(false)
-  };
+  const setLanguage = async (code: any) => {
+    // setIsVisible?.(false);
+    if (code == 'en') {
+      if (I18nManager.isRTL) {
+        await I18nManager.forceRTL(false);
+      }
+    } else {
+      if (!I18nManager.isRTL) {
+        await I18nManager.forceRTL(true);
+      }
+    }
+    RNRestart.Restart();
 
-  const toggleEnglishCheck = () => {
-    setEnglishChecked(true)
-    setArabicChecked(false);
-    selectedLanguage?.('English')
-    setIsVisible?.(false)
+    return i18n.changeLanguage(code);
   };
 
   return (
-    <Modal transparent={true} visible={isVisible} animationType='slide' >
+    <Modal transparent={true} visible={isVisible} animationType="slide">
       <_View style={styles.container}>
         <_View style={styles.innerContainer}>
           <_View style={styles.headerStyle}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setIsVisible?.(false)}>
+              <_Icon name="close" family="AntDesign" color={Color.Gray} />
+            </TouchableOpacity>
             <_Text
               style={{
                 textAlign: 'center',
                 fontSize: 20,
+                marginBottom: -10,
               }}>
-              {'Language'}
+              {t('common:language')}
             </_Text>
-
-            <TouchableOpacity style={styles.closeButton} onPress={()=>setIsVisible?.(false)} >
-              <_Icon name="close" family="AntDesign" color={Color.Gray} />
-            </TouchableOpacity>
           </_View>
           <_View style={styles.languageCard}>
             <_View style={styles.flagContainer}>
@@ -60,7 +69,10 @@ export const SelectLanguageModal: FC<selectLanguageModalProps> = ({
               <_Text style={styles.textStyle}>{'اللغة العربية'}</_Text>
             </_View>
             <_View style={styles.checkBox}>
-              <_Checkbox checked={ArabicChecked} onToggle={toggleArabicCheck} />
+              <_Checkbox
+                checked={lang == 'ar' ? true : false}
+                onToggle={() => setLanguage('ar')}
+              />
             </_View>
           </_View>
 
@@ -74,10 +86,15 @@ export const SelectLanguageModal: FC<selectLanguageModalProps> = ({
               />
             </_View>
             <_View style={styles.textContainer}>
-              <_Text style={styles.textStyle}>{'English'}</_Text>
+              <Text style={[styles.textStyle, {fontFamily: 'Lato-Regular'}]}>
+                {'English'}
+              </Text>
             </_View>
             <_View style={styles.checkBox}>
-              <_Checkbox checked={englishChecked} onToggle={toggleEnglishCheck} />
+              <_Checkbox
+                checked={lang == 'en' ? true : false}
+                onToggle={() => setLanguage('en')}
+              />
             </_View>
           </_View>
         </_View>
@@ -85,4 +102,3 @@ export const SelectLanguageModal: FC<selectLanguageModalProps> = ({
     </Modal>
   );
 };
-

@@ -14,7 +14,6 @@ import {Color} from 'const';
 import {useNavigation} from '@react-navigation/native';
 import {NavigationProps} from 'navigation';
 import {StyleSheet} from 'react-native';
-import {LanguageSelector} from '../../components/LanguageSelector';
 import {useTranslation} from 'react-i18next';
 export const Terms: FC = () => {
   const navigation = useNavigation<NavigationProps>();
@@ -32,8 +31,7 @@ export const Terms: FC = () => {
           source={require('assets/icons/appLogo.png')}
         />
         <_Text style={{width: '80%', textAlign: 'center'}}>
-          Lorem ipsum dolor sit amet, etiam eu turpis dictum est a, mattis
-          tellus. Sed dignissim, metus nec fringilla accumsan.
+          {t('common:loremPisum')}
         </_Text>
         <_Text>{t('common:hello')}</_Text>
       </_View>
@@ -48,22 +46,20 @@ export const Terms: FC = () => {
           }}>
           <_Checkbox checked={agree} onToggle={setAgree.bind(null, !agree)} />
           <_Text>
-            I agree to
+            {t('common:iAgree')}
             <_Text style={{color: '#0D6EFD', textDecorationLine: 'underline'}}>
-              {' '}
-              Terms & Conditions{' '}
+              {t('common:termsAndConditions')}
             </_Text>
-            and
+            {t('common:and')}
             <_Text style={{color: '#0D6EFD', textDecorationLine: 'underline'}}>
-              {' '}
-              Privacy Policy
+              {t('common:privacyPolicy')}
             </_Text>
           </_Text>
         </_View>
         {/* <LanguageSelector /> */}
         <_Button
           onPress={() => navigation.navigate('auth')}
-          title="Continue"
+          title={t('common:continue')}
           style={styles.loginBtn}
         />
       </_View>

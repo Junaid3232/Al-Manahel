@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     color: Color.Negative,
   },
   primaryDisabled: {
-    backgroundColor: Color.Secondary,
+    backgroundColor: Color.Gray,
     borderColor: Color.Secondary,
   },
   primaryTextDisabled: {
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   },
   loading: {
     alignSelf: 'center',
-    height: 40,
+    height: 50,
   },
   arrowRotated: {
     transform: [{rotate: '180deg'}],
